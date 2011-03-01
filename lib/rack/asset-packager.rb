@@ -20,7 +20,6 @@ module Rack
       @javascript_dir = F.join "/", "javascripts"
       @stylesheet_dir = F.join "/", "stylesheets"
 
-      @config = YAML.load_file 'config/assets.yml'
     end
     
     def brew(coffee)
@@ -48,6 +47,7 @@ module Rack
     end
     
     def call(env)
+      @config = YAML.load_file 'config/assets.yml'
       path = Utils.unescape(env["PATH_INFO"])
       return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]] if path.include?('..')
       
