@@ -15,6 +15,7 @@ module Rack
       
       @urls = *opts[:urls] || '/javascripts'
       @root = opts[:root] || Dir.pwd
+      @server = opts[:static] ? Rack::File.new(root) : app
       @command = 'coffee -p'
       
       @javascript_dir = F.join "/", "javascripts"
@@ -41,9 +42,12 @@ module Rack
             brew(base + '.coffee') if extension == "js"
             "#{base}.#{extension}"
           end
-          F.open(F.join(@root, filename), 'wb') { |f| f.write( `cat #{assets.join(" ")}` ) } 
+          return [200, {
+            "Content-Type"   => extension == "js" ? "text/javascript" : "text/css"
+          }, `cat #{assets.join(" ")}`]
         end
       end
+      return false
     end
     
     def call(env)
@@ -51,8 +55,14 @@ module Rack
       path = Utils.unescape(env["PATH_INFO"])
       return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]] if path.include?('..')
       
-      concat(path, @config["javascripts"], @javascript_dir, "js") if path =~ /^#{@javascript_dir}/
-      concat(path, @config["stylesheets"], @stylesheet_dir, "css") if path =~ /^#{@stylesheet_dir}/
+      if path =~ /^#{@javascript_dir}/
+        server_call = concat(path, @config["javascripts"], @javascript_dir, "js") 
+        return server_call if server_call 
+      end
+      if path =~ /^#{@stylesheet_dir}/
+        server_call = concat(path, @config["stylesheets"], @stylesheet_dir, "css") 
+        return server_call if server_call 
+      end
       
       return @app.call(env)
     end
