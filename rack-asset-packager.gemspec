@@ -13,4 +13,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = %q{rack-asset-packager}
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{bundles assets dynamically}
+  
+  s.add_dependency 'yui-compressor'
+  s.add_dependency 'closure-compiler'
 end
