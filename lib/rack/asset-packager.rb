@@ -66,8 +66,8 @@ module Rack
     end
     
     def self.compress_js(js)
-      # YUI::JavaScriptCompressor.new.compress(js)
-      Closure::Compiler.new.compile(js)
+      YUI::JavaScriptCompressor.new.compress(js)
+      # Closure::Compiler.new.compile(js)
     end
     
     def prepare_files(files, extension, asset_dir)
