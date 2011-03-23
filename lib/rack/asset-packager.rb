@@ -55,8 +55,10 @@ module Rack
       each_asset do |asset_file_name, assets, extension, asset_dir|
         files = prepare_files assets, extension, asset_dir
         contents = `cat #{files.join(" ")}`
-        contents = compress_css(contents) if extension == "css"
-        contents = compress_js(contents) if extension == "js"
+        if Rails.env.production?
+          contents = compress_css(contents) if extension == "css"
+          contents = compress_js(contents) if extension == "js"
+        end
         F.open(asset_file_name, 'wb') { |f| f.write(contents) }
       end
     end
@@ -66,8 +68,8 @@ module Rack
     end
     
     def self.compress_js(js)
-      YUI::JavaScriptCompressor.new.compress(js)
-      # Closure::Compiler.new.compile(js)
+      # YUI::JavaScriptCompressor.new.compress(js)
+      Closure::Compiler.new.compile(js)
     end
     
     def prepare_files(files, extension, asset_dir)
