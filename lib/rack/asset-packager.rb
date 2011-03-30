@@ -34,11 +34,11 @@ module Rack
     def self.each_asset(&block)
       for key in config.keys
         next if key.to_sym == :settings
-        # puts "#{key.upcase}"
+        puts "#{key.upcase}"
         extension = key == "javascripts" ? "js" : "css"
         asset_dir = key == "javascripts" ? settings[:javascript_dir] : settings[:stylesheet_dir]
         for asset in config[key].keys
-          # puts " - #{asset}.#{extension}"
+          puts " - #{asset}.#{extension}"
           asset_file_name = F.join settings[:root], asset_dir, "#{asset}.#{extension}"
           yield asset_file_name, config[key][asset], extension, asset_dir
         end
