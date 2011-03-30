@@ -100,12 +100,31 @@ module Rack
     
     def concat(path, config, asset_dir, extension)
       for key in config.keys
-        filename = F.join asset_dir, "#{key}." + extension
+        filename_without_extension  = F.join asset_dir, "#{key}"
+        filename                    = filename_without_extension + "." + extension
+        
+        # matches exactly
         if filename == path
           assets = prepare_files(config[key], extension, asset_dir)
+          
           return [200, {
             "Content-Type"   => extension == "js" ? "text/javascript" : "text/css"
           }, `cat #{assets.join(" ")}`]
+          
+        # matches by starts_with -  i.e. "/stylesheets/application_package_0".starts_with?('/stylesheets/application_package')
+        elsif path.starts_with?(filename_without_extension) 
+          assets = prepare_files(config[key], extension, asset_dir)
+          
+          multiplier = path.gsub("#{filename_without_extension}_", '').gsub(".#{extension}", '').to_i rescue 0
+          first = 0 + (multiplier * 10) # split every 10 up.
+          last = 9  + (multiplier * 10)
+          
+          files = assets[first..last].join(" ") rescue nil
+          if files
+            return [200, {
+              "Content-Type"   => extension == "js" ? "text/javascript" : "text/css"
+            }, `cat #{files}`]
+          end
         end
       end
       return false
@@ -113,12 +132,19 @@ module Rack
     
     def self.asset_stylesheet_link(package, options={})
       output = []
-      if options[:ie7] != true && Rails.env.production?
+      if options[:ie7] == true
+        length = config[:stylesheets][package].length
+        number_of_packages = (length / 10) + 1
+        number_of_packages.times do |n|
+          output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}_#{n}.css' media='all' />"
+        end
+      elsif Rails.env.production?
         output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}.css' media='all' />"
       else
-        config[:stylesheets][package].each do |sheet|
-          output << "<link rel='stylesheet' href='/stylesheets/#{sheet.to_s}.css' media='all' />"
-        end
+        output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}.css' media='all' />"
+        # config[:stylesheets][package].each do |sheet|
+        #   output << "<link rel='stylesheet' href='/stylesheets/#{sheet.to_s}.css' media='all' />"
+        # end
       end
       
       output.join("\n")
@@ -134,7 +160,7 @@ module Rack
       end
       if path =~ /^#{settings[:stylesheet_dir]}/
         server_call = concat(path, config[:stylesheets], settings[:stylesheet_dir], "css") 
-        return server_call if server_call 
+        return server_call if server_call
       end
       
       return @app.call(env)
