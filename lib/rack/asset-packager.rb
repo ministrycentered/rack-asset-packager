@@ -48,11 +48,23 @@ module Rack
     def self.remove_packages
       each_asset do |asset_file_name, assets, extension, asset_dir|
         F.delete(asset_file_name) if F.exists?(asset_file_name)
+        
+        # remove from the split packages too
+        20.times do |n|
+          split_asset_file_name =  "#{asset_file_name.gsub(".#{extension}", "")}_#{n}.#{extension}"
+          F.delete(split_asset_file_name) if F.exists?(split_asset_file_name)
+        end
       end
     end
     
     def self.package
+      basic_package
+      split_package
+    end
+    
+    def self.basic_package
       each_asset do |asset_file_name, assets, extension, asset_dir|
+        # standard packaging
         files = prepare_files assets, extension, asset_dir
         contents = `cat #{files.join(" ")}`
         if Rails.env.production?
@@ -60,6 +72,29 @@ module Rack
           contents = compress_js(contents) if extension == "js"
         end
         F.open(asset_file_name, 'wb') { |f| f.write(contents) }
+      end
+    end
+    
+    def self.split_package
+      each_asset do |asset_file_name, assets, extension, asset_dir|
+        if extension == "css" # only run for css right now
+          # standard packaging
+          files = prepare_files assets, extension, asset_dir
+        
+          # ie packaging - split into separate files if css - to handle ie7s limitations on filesize per stylesheet
+          if files.length > 10
+            number_of_splits = (files.length / 10) + 1
+            number_of_splits.times do |n|
+              first = 0 + (n * 10) # split every 10 up.
+              last = 9  + (n * 10)
+              contents = `cat #{files[first..last].join(" ")}`
+              if Rails.env.production?
+                contents = compress_css(contents) if extension == "css"
+              end
+              F.open("#{asset_file_name.gsub(".#{extension}", '')}_#{n}.#{extension}", 'wb') { |f| f.write(contents) }
+            end
+          end
+        end
       end
     end
     
