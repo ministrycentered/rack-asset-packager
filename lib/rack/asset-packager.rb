@@ -77,22 +77,19 @@ module Rack
     
     def self.split_package
       each_asset do |asset_file_name, assets, extension, asset_dir|
-        if extension == "css" # only run for css right now
+        if extension == "css" && assets.length > 10 # only run for css right now
           # standard packaging
           files = prepare_files assets, extension, asset_dir
-        
           # ie packaging - split into separate files if css - to handle ie7s limitations on filesize per stylesheet
-          if files.length > 10
-            number_of_splits = (files.length / 10) + 1
-            number_of_splits.times do |n|
-              first = 0 + (n * 10) # split every 10 up.
-              last = 9  + (n * 10)
-              contents = `cat #{files[first..last].join(" ")}`
-              if Rails.env.production?
-                contents = compress_css(contents) if extension == "css"
-              end
-              F.open("#{asset_file_name.gsub(".#{extension}", '')}_#{n}.#{extension}", 'wb') { |f| f.write(contents) }
+          number_of_splits = (files.length / 10) + 1
+          number_of_splits.times do |n|
+            first = 0 + (n * 10) # split every 10 up.
+            last = 9  + (n * 10)
+            contents = `cat #{files[first..last].join(" ")}`
+            if Rails.env.production?
+              contents = compress_css(contents) if extension == "css"
             end
+            F.open("#{asset_file_name.gsub(".#{extension}", '')}_#{n}.#{extension}", 'wb') { |f| f.write(contents) }
           end
         end
       end
@@ -167,7 +164,7 @@ module Rack
     
     def self.asset_stylesheet_link(package, options={})
       output = []
-      if options[:ie7] == true
+      if options[:ie7] == true && config[:stylesheets][package].length > 10
         length = config[:stylesheets][package].length
         number_of_packages = (length / 10) + 1
         number_of_packages.times do |n|
