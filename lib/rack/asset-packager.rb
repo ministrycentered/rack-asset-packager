@@ -185,7 +185,7 @@ module Rack
     def self.asset_javascript_link(package, options={})
       output = []
       if Rails.env.production?
-        output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}.css' media='all' />"
+        output << "<script src='/javascripts/#{package.to_s}.js' type='text/javascript'></script>"
       else
         config[:javascripts][package].each do |script|
           output << "<script src='/javascripts/#{script.to_s}.js' type='text/javascript'></script>"
