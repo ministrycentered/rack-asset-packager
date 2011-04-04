@@ -182,6 +182,19 @@ module Rack
       output.join("\n")
     end
     
+    def self.asset_javascript_link(package, options={})
+      output = []
+      if Rails.env.production?
+        output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}.css' media='all' />"
+      else
+        config[:javascripts][package].each do |script|
+          output << "<script src='/javascripts/#{script.to_s}.js' type='text/javascript'></script>"
+        end
+      end
+      
+      output.join("\n")
+    end
+    
     def call(env)
       path = Utils.unescape(env["PATH_INFO"])
       return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]] if path.include?('..')
