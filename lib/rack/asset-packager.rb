@@ -184,7 +184,7 @@ module Rack
     
     def self.asset_javascript_link(package, options={})
       output = []
-      if Rails.env.production?
+      if Rails.env.production? || Rails.env.staging?
         output << "<script src='/javascripts/#{package.to_s}.js' type='text/javascript'></script>"
       else
         config[:javascripts][package].each do |script|
