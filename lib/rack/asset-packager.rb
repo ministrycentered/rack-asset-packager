@@ -183,6 +183,7 @@ module Rack
     end
     
     def self.asset_javascript_link(package, options={})
+      output = []
       if options[:break_out] == true
         config[:javascripts][package].each do |script|
           output << "<script src='/javascripts/#{script.to_s}.js' type='text/javascript'></script>"
