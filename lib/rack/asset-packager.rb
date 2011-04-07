@@ -162,37 +162,34 @@ module Rack
       return false
     end
     
-    def self.asset_stylesheet_link(package, options={})
+    def self.stylesheets(package, options={})
       output = []
       if options[:ie7] == true && config[:stylesheets][package].length > 10
         length = config[:stylesheets][package].length
         number_of_packages = (length / 10) + 1
         number_of_packages.times do |n|
-          output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}_#{n}.css' media='all' />"
+          output << package.to_s
         end
       elsif Rails.env.production?
-        output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}.css' media='all' />"
+        output << package.to_s
       else
-        output << "<link rel='stylesheet' href='/stylesheets/#{package.to_s}.css' media='all' />"
-        # config[:stylesheets][package].each do |sheet|
-        #   output << "<link rel='stylesheet' href='/stylesheets/#{sheet.to_s}.css' media='all' />"
-        # end
+        output << package.to_s
       end
       
-      output.join("\n")
+      output
     end
     
-    def self.asset_javascript_link(package, options={})
+    def self.javascripts(package, options={})
       output = []
       if options[:break_out] == true
         config[:javascripts][package].each do |script|
-          output << "<script src='/javascripts/#{script.to_s}.js' type='text/javascript'></script>"
+          output << script.to_s
         end
       else
-        output << "<script src='/javascripts/#{package.to_s}.js' type='text/javascript'></script>"
+        output << package.to_s
       end
       
-      output.join("\n")
+      output
     end
     
     def call(env)
