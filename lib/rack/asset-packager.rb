@@ -168,7 +168,7 @@ module Rack
         length = config[:stylesheets][package].length
         number_of_packages = (length / 10) + 1
         number_of_packages.times do |n|
-          output << package.to_s
+          output << "#{package.to_s}_#{n}"
         end
       elsif Rails.env.production?
         output << package.to_s
